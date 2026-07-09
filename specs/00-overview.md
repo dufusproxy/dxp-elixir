@@ -66,15 +66,15 @@ This breakdown puts the **Elixir/Ash core first**. The spec's §5.3 makes Phoeni
  09 DAM, 10 search, 11 workflow, 13 multisite, 18 infra — hang off 02–04
 ```
 
-## The first ten pull requests (spec §9.4, reordered Elixir-first)
+## The first ten pull requests (spec §9.4, reordered Ash-first)
 
-1. Phoenix umbrella + Ash + AshPostgres skeleton; hello-world; AshAdmin at `/admin` → *01*
-2. Asset resource (PaperTrail/StateMachine/Archival/multitenancy); CRUD via AshAdmin → *02*
+1. Ash project + AshPostgres; tenant-scoped resources from first commit → *01*
+2. Asset resource (PaperTrail/StateMachine/Archival/multitenancy) → *02*
 3. AssetLink + DAG traversal calculations → *02*
 4. Permission resource + policy module + ETS cache → *03*
 5. AshJsonApi generation; POST /api/v1/assets round-trip with versioning → *04*
 6. Component + ComponentVersion resources; artefact upload to MinIO via CLI → *06* *(spec's PR 7)*
-7. Phoenix render path: HEEx from object storage → ETS AST → render with props → *07* *(spec's PR 8)*
+7. Add ash_phoenix; render path: HEEx from object storage → ETS AST → render with props → *07* *(spec's PR 8)*
 8. Render-and-cache: Cachex tier-1, AshOban invalidation; visible static site → *08* *(spec's PR 10)*
 9. Vite plugin core + Astro adapter; three components compile to HEEx → *14/15* *(spec's PR 6, deferred to JS track)*
 10. Editor shell (Vue or LiveView per §11 decision); content-shaped page editor → *12* *(spec's PR 9, deferred)*
