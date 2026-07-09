@@ -5,7 +5,7 @@
 **Next up:** M2 — Asset resource (`specs/02-asset-model.md`), then M3 — AssetLink + DAG traversal
 
 ## Blockers / decisions needed
-- Hex was unreachable in the previous session: `repo.hex.pm` / `builds.hex.pm` returned 403 from the egress proxy because the allowed-domain list (hex.pm, repo.hex.pm, builds.hex.pm, diffs.hex.pm) was added to the environment settings *while the session was running* — the policy is snapshotted at session start. A fresh session should have them allowed. Verify with `curl -sS -o /dev/null -w "%{http_code}" https://repo.hex.pm/` (expect 200) before running `mix deps.get`.
+- Hex was unreachable in the previous session: `repo.hex.pm` / `builds.hex.pm` / `diffs.hex.pm` returned 403 from the egress proxy. Confirmed experimentally that allowlist changes made while a session is running never reach that session — the policy is snapshotted at container start. The allowlist now contains `hex.pm`, `repo.hex.pm`, `builds.hex.pm`, `diffs.hex.pm`, **and `*.hex.pm`**, so a fresh session should have them. Verify with `curl -sS -o /dev/null -w "%{http_code}" https://repo.hex.pm/` (expect 200) before running `mix deps.get`; if it still 403s, report the blocked host to the user rather than working around it.
 
 ## Notes for next session
 - First time here? Read `specs/00-overview.md` for the milestone sequence and dependency graph, and `AGENTS.md` (repo root) for the working protocol.
