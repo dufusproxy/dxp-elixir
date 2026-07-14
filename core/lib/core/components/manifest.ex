@@ -96,8 +96,14 @@ defmodule Core.Components.Manifest do
         _ ->
           {:error, "Invalid YAML structure"}
       end
-    rescue
-      :yamerl_exception ->
+    catch
+      :throw, {:yamerl_exception, _} ->
+        {:error, "Invalid YAML syntax"}
+
+      :throw, {:yamerl_invalid_option, _} ->
+        {:error, "Invalid YAML option"}
+
+      {:yamerl_exception, _} ->
         {:error, "Invalid YAML syntax"}
 
       e ->
@@ -156,22 +162,86 @@ defmodule Core.Components.Manifest do
   # Private functions
 
   defp normalize_map(list) when is_list(list) do
-    # Handle proplists format from yamerl
-    Enum.into(list, %{}, fn
-      {k, v} when is_list(k) or is_binary(k) -> {normalize_key(k), normalize_value(v)}
-      other -> other
+    # Check if this is a proplist (key-value tuples) or a plain list
+    if Keyword.keyword?(list) or all_tuples?(list) do
+      # Handle proplists format from yamerl - convert to map
+      Enum.into(list, %{}, fn
+        {k, v} when is_list(k) or is_binary(k) -> {normalize_key(k), normalize_value(v)}
+        {k, v} -> {normalize_key(k), normalize_value(v)}
+      end)
+    else
+      # Plain list - map over elements
+      Enum.map(list, &normalize_value/1)
+    end
+  end
+
+  defp normalize_map(map) when is_map(map) do
+    Map.new(map, fn {k, v} -> {normalize_key(k), normalize_value(v)} end)
+  end
+  defp normalize_map(other), do: other
+
+  defp all_tuples?(list) when is_list(list) do
+    Enum.all?(list, fn
+      {_, _} -> true
+      _ -> false
     end)
   end
 
-  defp normalize_map(map) when is_map(map), do: Map.new(map, fn {k, v} -> {normalize_key(k), normalize_value(v)} end)
-  defp normalize_map(list) when is_list(list), do: Enum.map(list, &normalize_map/1)
-  defp normalize_map(other), do: other
-
   defp normalize_key(key) when is_atom(key), do: key
-  defp normalize_key(key) when is_list(key), do: List.to_string(key)  # Convert charlist to string
-  defp normalize_key(key) when is_binary(key), do: key
+  defp normalize_key(key) when is_list(key), do: key |> List.to_string() |> normalize_key()  # Convert charlist to string, then to atom
+  defp normalize_key(key) when is_binary(key) do
+    # Convert known string keys to atoms for expected fields
+    try do
+      String.to_existing_atom(key)
+    rescue
+      ArgumentError -> key
+    end
+  end
 
+  defp normalize_value(value) when is_list(value) do
+    # Check if this is a proplist that looks like expects_layout
+    if Keyword.keyword?(value) or all_tuples?(value) do
+      # Convert proplist to map and normalize
+      converted = Enum.into(value, %{}, fn {k, v} -> {normalize_key(k), normalize_value(v)} end)
+      # Check if it has matches_role that needs conversion
+      case Map.get(converted, :matches_role) do
+        nil -> converted
+        role when is_binary(role) or is_list(role) ->
+          %{converted | matches_role: convert_to_safe_atom(role)}
+        _ -> converted
+      end
+    else
+      # Handle as regular list
+      # Check if this is a charlist (single string value) or a list of values
+      if List.ascii_printable?(value) and not Keyword.keyword?(value) and not all_tuples?(value) do
+        # This is a charlist string, convert to binary
+        List.to_string(value)
+      else
+        # Check if this is a list of strings (like roles: [page, layout])
+        # or nested structure
+        if Enum.all?(value, fn v -> is_binary(v) or is_list(v) end) do
+          # List of strings/charlists - convert to atoms for roles, modes
+          Enum.map(value, &convert_to_safe_atom/1)
+        else
+          normalize_map(value)
+        end
+      end
+    end
+  end
   defp normalize_value(value), do: normalize_map(value)
+
+  # Convert string/charlist to atom safely - only for known valid values
+  defp convert_to_safe_atom(str) when is_binary(str) do
+    # Try existing atom first, fall back to regular conversion if safe
+    try do
+      String.to_existing_atom(str)
+    rescue
+      ArgumentError -> :erlang.binary_to_atom(str, :utf8)
+    end
+  end
+  defp convert_to_safe_atom(charlist) when is_list(charlist) do
+    charlist |> List.to_string() |> convert_to_safe_atom()
+  end
 
   defp validate_required_fields(manifest) do
     missing = Enum.reject(@required_fields, &Map.has_key?(manifest, &1))

@@ -154,6 +154,10 @@ defmodule Core.Components.Semver do
         {{String.to_integer(major), String.to_integer(minor), String.to_integer(patch)},
          prerelease}
 
+      [_, major, minor, patch] ->
+        {{String.to_integer(major), String.to_integer(minor), String.to_integer(patch)},
+         nil}
+
       _ ->
         raise ArgumentError, "Invalid semver: #{version}"
     end
@@ -182,33 +186,31 @@ defmodule Core.Components.Semver do
 
       String.starts_with?(range, "^") ->
         # Caret range: >=X.Y.Z < X+1.0.0
-        version = String.slice(range, 1..-1)
-        {major, _minor, _patch} = parse_version(version)
+        version = String.slice(range, 1..-1//1)
+        {{major, _minor, _patch}, _prerelease} = parse_version(version)
         next_major = major + 1
         upper = "#{next_major}.0.0"
-        {:ok, gte: version, lt: upper}
+        {:ok, [gte: version, lt: upper]}
 
       String.starts_with?(range, "~") ->
         # Tilde range: >=X.Y.Z < X.Y+1.0
-        version = String.slice(range, 1..-1)
-        {major, minor, _patch} = parse_version(version)
+        version = String.slice(range, 1..-1//1)
+        {{major, minor, _patch}, _prerelease} = parse_version(version)
         upper = "#{major}.#{minor + 1}.0"
-        {:ok, gte: version, lt: upper}
+        {:ok, [gte: version, lt: upper]}
 
       String.contains?(range, " ") ->
-        # Complex range: ">=1.2.3 <2.0.0"
+        # Complex range: ">=1.2.3 <2.0.0" - check BEFORE single operator
         parts = String.split(range, " ", trim: true)
         parse_complex_range(parts, [])
 
-      Regex.match?(~r/^\d+\.\d+\.\d+/, range) ->
-        # Exact version or partial range
-        if Regex.match?(~r/^[><=!]/, range) do
-          # Operator range: >=1.2.3
-          parse_operator_range(range)
-        else
-          # Exact version
-          {:ok, exact: range}
-        end
+      String.match?(range, ~r/^[><=!]/) ->
+        # Operator range: >=1.2.3, >1.2.3, <2.0.0, <=2.0.0, =1.2.3
+        parse_operator_range(range)
+
+      Regex.match?(~r/^\d+\.\d+\.\d+$/, range) ->
+        # Exact version
+        {:ok, [exact: range]}
 
       true ->
         {:error, "Invalid range: #{range}"}
@@ -221,13 +223,13 @@ defmodule Core.Components.Semver do
 
   defp parse_complex_range([part | rest], acc) do
     case parse_operator_range(part) do
-      {:ok, constraint} -> parse_complex_range(rest, [constraint | acc])
+      {:ok, [constraint]} -> parse_complex_range(rest, [constraint | acc])
       {:error, _} = err -> err
     end
   end
 
   defp parse_operator_range(range) do
-    case Regex.run(~r/^(>=|<=|>|<|=)(\d+\.\d+\.\d+.*)$/, range) do
+    case Regex.run(~r/^(>=|<=|>|<|=)(\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?)$/, range) do
       [_, op, version] ->
         constraint =
           case op do
@@ -256,7 +258,21 @@ defmodule Core.Components.Semver do
   end
 
   defp check_constraint(version, :gte, constraint_version) do
-    compare(version, constraint_version) in [:eq, :gt]
+    # Special handling: if constraint_version is prerelease, version must also be prerelease
+    {_, constraint_pre} = parse_version(constraint_version)
+    if constraint_pre != nil do
+      {_, version_pre} = parse_version(version)
+      if version_pre == nil do
+        # Stable version doesn't satisfy prerelease constraint
+        false
+      else
+        # Both prerelease, compare normally
+        compare(version, constraint_version) in [:eq, :gt]
+      end
+    else
+      # Normal constraint
+      compare(version, constraint_version) in [:eq, :gt]
+    end
   end
 
   defp check_constraint(version, :lte, constraint_version) do
@@ -293,32 +309,40 @@ defmodule Core.Components.Semver do
 
   defp compare_prerelease_parts([p1 | rest1], [p2 | rest2]) do
     # Try numeric comparison first
-    {n1, is_num1} = Integer.parse(p1)
-    {n2, is_num2} = Integer.parse(p2)
+    num1 = parse_numeric(p1)
+    num2 = parse_numeric(p2)
 
     cond do
-      is_num1 == "" and is_num2 == "" ->
-        cond do
-          n1 > n2 -> :gt
-          n1 < n2 -> :lt
-          true -> compare_prerelease_parts(rest1, rest2)
-        end
-
-      is_num1 == "" ->
-        # Numeric < alpha
-        :gt
-
-      is_num2 == "" ->
-        # Alpha > numeric
-        :lt
-
-      true ->
+      is_nil(num1) and is_nil(num2) ->
         # Both alpha, compare lexicographically
         cond do
           p1 > p2 -> :gt
           p1 < p2 -> :lt
           true -> compare_prerelease_parts(rest1, rest2)
         end
+
+      is_nil(num1) and not is_nil(num2) ->
+        # Alpha > numeric (numeric comes first)
+        :gt
+
+      not is_nil(num1) and is_nil(num2) ->
+        # Numeric < alpha
+        :lt
+
+      true ->
+        # Both numeric
+        cond do
+          num1 > num2 -> :gt
+          num1 < num2 -> :lt
+          true -> compare_prerelease_parts(rest1, rest2)
+        end
+    end
+  end
+
+  defp parse_numeric(str) do
+    case Integer.parse(str) do
+      {num, ""} -> num  # Entire string is a number
+      _ -> nil
     end
   end
 

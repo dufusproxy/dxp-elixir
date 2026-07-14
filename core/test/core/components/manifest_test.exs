@@ -67,7 +67,7 @@ defmodule Core.Components.ManifestTest do
     test "returns error for invalid YAML" do
       yaml = """
       name: test
-        invalid indentation
+      invalid: [unclosed
       version: 1.0.0
       """
 
