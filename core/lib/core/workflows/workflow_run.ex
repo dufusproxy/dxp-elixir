@@ -120,6 +120,7 @@ defmodule Core.Workflows.WorkflowRun do
     create :create do
       primary?(true)
       accept([:asset_id, :workflow_id, :current_state, :initiated_by, :context])
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
@@ -137,11 +138,15 @@ defmodule Core.Workflows.WorkflowRun do
             changeset
         end
       end)
+
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     destroy :destroy do
       primary?(true)
       soft?(true)
+      require_atomic?(false)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

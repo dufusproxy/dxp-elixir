@@ -173,6 +173,9 @@ defmodule Core.Content.Page do
 
       # Manually add the change to create implied assets
       change {Core.Implications.Changes.CreateImpliedAssets, implications: Core.Implications.Info.implications(__MODULE__), resource: __MODULE__}
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
@@ -181,6 +184,9 @@ defmodule Core.Content.Page do
 
       # Allow paper_trail to work atomically
       require_atomic?(false)
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     destroy :destroy do
@@ -194,42 +200,59 @@ defmodule Core.Content.Page do
 
       # Manually add the change to handle cascade deletion
       change {Core.Implications.Changes.HandleCascadeDelete, implications: Core.Implications.Info.implications(__MODULE__), resource: __MODULE__}
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     # State machine transitions
     update :submit_for_review do
       accept([])
+      require_atomic?(false)
       change transition_state(:review)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :approve do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :reject do
       accept([])
+      require_atomic?(false)
       change transition_state(:draft)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :start_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:safe_edit)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :commit_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :discard_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :archive do
       accept([])
+      require_atomic?(false)
       change transition_state(:archived)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

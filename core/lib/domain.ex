@@ -9,6 +9,11 @@ defmodule Core.Domain do
   resources do
     resource(Core.Resources.Tenant)
 
+    # Account resources
+    resource(Core.Accounts.User)
+    resource(Core.Accounts.Identity)
+    resource(Core.Accounts.Token)
+
     # Asset model resources
     resource(Core.Assets.Asset)
     resource(Core.Assets.AssetLink)

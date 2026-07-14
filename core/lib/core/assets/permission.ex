@@ -8,12 +8,33 @@ defmodule Core.Assets.Permission do
     data_layer: AshPostgres.DataLayer,
     extensions: [
       AshPaperTrail.Resource,
-      AshArchival.Resource
+      AshArchival.Resource,
+      AshJsonApi.Resource
     ]
 
   postgres do
     table("permissions")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("permission")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :asset_id,
+      :principal_id,
+      :principal_type,
+      :level,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   paper_trail do
@@ -76,6 +97,9 @@ defmodule Core.Assets.Permission do
 
       # Invalidate permission cache on create
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
@@ -87,6 +111,9 @@ defmodule Core.Assets.Permission do
 
       # Invalidate permission cache on update
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     destroy :destroy do
@@ -98,6 +125,9 @@ defmodule Core.Assets.Permission do
 
       # Invalidate permission cache on destroy
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

@@ -8,12 +8,32 @@ defmodule Core.Assets.AssetLink do
     data_layer: AshPostgres.DataLayer,
     extensions: [
       AshPaperTrail.Resource,
-      AshArchival.Resource
+      AshArchival.Resource,
+      AshJsonApi.Resource
     ]
 
   postgres do
     table("asset_links")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("asset_link")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :parent_id,
+      :child_id,
+      :link_type,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   paper_trail do
@@ -79,6 +99,9 @@ defmodule Core.Assets.AssetLink do
 
       # Invalidate permission cache on create
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
@@ -90,6 +113,9 @@ defmodule Core.Assets.AssetLink do
 
       # Invalidate permission cache on update
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     destroy :destroy do
@@ -102,6 +128,9 @@ defmodule Core.Assets.AssetLink do
 
       # Invalidate permission cache on destroy
       change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

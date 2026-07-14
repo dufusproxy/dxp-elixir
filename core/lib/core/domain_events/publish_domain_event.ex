@@ -31,7 +31,7 @@ defmodule Core.DomainEvents.PublishDomainEvent do
     {:not_atomic, "Domain event publishing requires the final record with IDs"}
   end
 
-  defp publish_event(changeset, {:ok, record}, context) do
+  defp publish_event(changeset, record, context) when is_struct(record) do
     resource = changeset.resource
     action_name = changeset.action.name
     actor = Map.get(context, :actor)

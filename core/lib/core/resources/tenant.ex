@@ -51,16 +51,24 @@ defmodule Core.Resources.Tenant do
   end
 
   actions do
-    defaults([:read, :destroy])
+    defaults([:read])
 
     create :create do
       primary?(true)
       accept([:name, :slug])
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
       primary?(true)
       accept([:name, :slug])
+      require_atomic?(false)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
+    end
+
+    destroy :destroy do
+      require_atomic?(false)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

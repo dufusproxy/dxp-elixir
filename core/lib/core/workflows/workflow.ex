@@ -91,16 +91,21 @@ defmodule Core.Workflows.Workflow do
     create :create do
       primary?(true)
       accept([:name, :slug, :asset_types, :definition])
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :update do
       primary?(true)
       accept([:name, :slug, :asset_types, :definition])
+      require_atomic?(false)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     destroy :destroy do
       primary?(true)
       soft?(true)
+      require_atomic?(false)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 

@@ -141,6 +141,9 @@ defmodule Core.Assets.Asset do
       change(fn changeset, _context ->
         Ash.Changeset.force_change_attribute(changeset, :state, :draft)
       end)
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     # Primary update action
@@ -150,6 +153,9 @@ defmodule Core.Assets.Asset do
 
       # Allow paper_trail to work atomically
       require_atomic?(false)
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
 
       # Only allow updates on draft or safe_edit assets
       # This will be enforced by policies in Milestone 4
@@ -164,42 +170,59 @@ defmodule Core.Assets.Asset do
 
       # Use soft delete
       soft?(true)
+
+      # Publish domain event
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     # State machine transitions
     update :submit_for_review do
       accept([])
+      require_atomic?(false)
       change transition_state(:review)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :approve do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :reject do
       accept([])
+      require_atomic?(false)
       change transition_state(:draft)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :start_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:safe_edit)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :commit_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :discard_safe_edit do
       accept([])
+      require_atomic?(false)
       change transition_state(:live)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
 
     update :archive do
       accept([])
+      require_atomic?(false)
       change transition_state(:archived)
+      change Core.DomainEvents.PublishDomainEvent.publish_domain_event()
     end
   end
 
