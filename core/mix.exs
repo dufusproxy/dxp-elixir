@@ -24,6 +24,11 @@ defmodule Core.MixProject do
     [
       {:ash, "~> 3.29"},
       {:ash_postgres, "~> 2.0"},
+      {:ash_paper_trail, "~> 0.6"},
+      {:ash_archival, "~> 2.0"},
+      {:ash_state_machine, "~> 0.2"},
+      {:ash_oban, "~> 0.8"},
+      {:oban, "~> 2.19"},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}

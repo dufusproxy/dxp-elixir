@@ -13,4 +13,11 @@ config :core, Core.Repo,
   pool_size: 10,
   show_sensitive_data_on_connection_error: true
 
+# Oban configuration for AshOban
+config :core, Oban,
+  repo: Core.Repo,
+  queues: [default: 10],
+  crontab: false,
+  prefix: "public"
+
 import_config "#{config_env()}.exs"
