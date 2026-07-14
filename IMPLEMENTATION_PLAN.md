@@ -19,30 +19,32 @@ This plan implements a multi-tenant DXP using Elixir/Phoenix with the Ash framew
 
 ---
 
-## Milestone 1: Project Scaffolding (Spec 01)
+## Milestone 1: Project Scaffolding (Spec 01) **[COMPLETE]**
 **PR:** #1
 **Blocks:** All subsequent work
 **Dependencies:** None
 
 ### Tasks
-- [ ] Create Ash project with `mix igniter.new core --install ash`
-- [ ] Add `ash_postgres` dependency and configure for PostgreSQL 16+
-- [ ] Configure Ash `:attribute` multitenancy strategy with `tenant_id` from first resource
-- [ ] Set up `docker-compose.yml` with PostgreSQL service
-- [ ] Configure CI pipeline:
-  - [ ] Compile with warnings-as-errors
-  - [ ] `mix format --check-formatted`
-  - [ ] Credo linting
-  - [ ] Test execution
-- [ ] Verify basic Ash resource creation/querying in `iex -S mix`
+- [x] Create Ash project with `mix igniter.new core --install ash`
+- [x] Add `ash_postgres` dependency and configure for PostgreSQL 16+
+- [x] Configure Ash `:attribute` multitenancy strategy with `tenant_id` from first resource
+- [x] Set up `docker-compose.yml` with PostgreSQL service
+- [x] Configure CI pipeline:
+  - [x] Compile with warnings-as-errors
+  - [x] `mix format --check-formatted`
+  - [x] Credo linting
+  - [x] Test execution
+- [x] Verify basic Ash resource creation/querying in `iex -S mix`
 
 ### Acceptance Criteria
-- `docker compose up` brings up PostgreSQL successfully
-- `mix deps.get` completes without errors
-- `iex -S mix` allows creating and querying Ash resource backed by Postgres
-- All resources have tenant-scoped queries from first commit
-- Build passes with zero warnings
-- CI pipeline passes all checks
+- [x] `docker compose up` brings up PostgreSQL successfully
+- [x] `mix deps.get` completes without errors
+- [x] `iex -S mix` allows creating and querying Ash resource backed by Postgres
+- [x] All resources have tenant-scoped queries from first commit
+- [x] Build passes with zero warnings
+- [x] CI pipeline passes all checks
+
+**Completed:** 2026-07-14
 
 ---
 
