@@ -1,0 +1,47 @@
+smartstop: true
+writelog: false
+agent: claude
+agents:
+  claude:
+    cmd: "claude -p --model $MODEL"
+    model: opus
+
+  # FUTURE ?
+  # Example: OpenAI CLI (requires openai command)
+  # openai:
+  #   cmd: "openai api chat completions create --model $openai.model}"
+  #   model: gpt-4
+  #   temperature: 0.7
+  #   max_tokens: 4096
+
+  # Example: Azure OpenAI CLI (requires az CLI)
+  # azure:
+  #   cmd: "az ai chat completion --deployment $azure.deployment}"
+  #   deployment: gpt-4
+  #   endpoint: "https://your-resource.openai.azure.com"
+  #   api_version: "2024-02-01"
+
+  # Example: Ollama for local models (requires ollama CLI)
+  # ollama:
+  #   cmd: "ollama run $ollama.model}"
+  #   model: llama2
+  #   temperature: 0.8
+
+modes:
+  default: build
+  plan:
+    agent: claude
+  build:
+    agent: claude
+    # Example: Run git commit after each iteration
+    # onIterationEnd: 'git add -A && git commit -m "Iteration {ITERATION_NUMBER} complete"'
+
+replacements:
+  PROJECT_DIRECTORY: { CWD }
+  SRC_DIR: "**/[src][lib]"
+  SPECS_DIR: "{PROJECT_DIRECTORY}/**/specs"
+  SPECIFICATIONS: "{SPECS_DIR}/*.md"
+  SPECIFICATIONS_IGNORE: none
+  IMPLEMENTATION_PLAN: "IMPLEMENTATION_PLAN.md"
+  AGENTS_FILE: "AGENTS.md"
+  ULTIMATE_GOAL: ""

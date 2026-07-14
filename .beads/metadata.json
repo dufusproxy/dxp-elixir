@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "embedded",
-  "dolt_database": "dxp_elixir",
-  "project_id": "2c51ef33-4562-4104-9366-9f055aea6ed7"
-}
