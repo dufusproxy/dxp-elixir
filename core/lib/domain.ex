@@ -14,6 +14,9 @@ defmodule Core.Domain do
     resource(Core.Assets.AssetLink)
     resource(Core.Assets.Permission)
 
+    # Content resources
+    resource(Core.Content.Page)
+
     # Metadata resources
     resource(Core.Metadata.MetadataSchema)
     resource(Core.Metadata.MetadataValue)
