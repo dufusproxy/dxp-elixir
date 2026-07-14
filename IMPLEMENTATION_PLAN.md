@@ -69,11 +69,13 @@ This plan implements a multi-tenant DXP using Elixir/Phoenix with the Ash framew
   - [x] States: `draft → review → live → safe_edit → archived`
   - [x] Define valid transitions
   - [x] Add `attribute :state, :atom`
+  - [x] **State machine transitions fully working with comprehensive test coverage (12 tests)**
 - [x] Create `Core.Assets.AssetLink` Ash resource (DAG edges):
   - [x] `attribute :parent_id, :uuid`
   - [x] `attribute :child_id, :uuid`
   - [x] `attribute :link_type, :atom` (primary, secondary, notice)
   - [x] Multitenancy on `tenant_id`
+  - [x] **Cycle prevention on link creation implemented with comprehensive test coverage (5 tests)**
 - [x] Create `Core.Metadata.MetadataSchema` resource:
   - [x] Schema definitions for typed metadata
 - [x] Create `Core.Metadata.MetadataValue` resource:
@@ -92,14 +94,14 @@ This plan implements a multi-tenant DXP using Elixir/Phoenix with the Ash framew
 - [x] Tests for basic resource functionality
 - [x] Build passes with zero warnings
 - [x] CI pipeline passes all checks
+- [x] **Comprehensive tests for state machine (12 new tests)**
+- [x] **Comprehensive tests for cycle prevention (5 new tests)**
 
 ### Deferred/Partial Tasks [ ]
-- [ ] Cycle prevention on link creation - deferred for later implementation
 - [ ] DAG traversal Ash calculations:
   - [ ] `ancestors` - calculate all parent assets (placeholder only)
   - [ ] `descendants` - calculate all child assets (placeholder only)
   - [ ] `paths` - calculate paths between assets (placeholder only)
-- [ ] State machine transitions - basic structure in place, needs debugging
 - [ ] Multitenancy with AshPaperTrail version resources - deferred to Milestone 4
 
 ### Acceptance Criteria
@@ -111,12 +113,15 @@ This plan implements a multi-tenant DXP using Elixir/Phoenix with the Ash framew
 - [x] Tests cover basic resource functionality
 - [x] Build passes with zero warnings
 - [x] CI pipeline passes all checks
-- [ ] AssetLink prevents cycles on creation (deferred)
+- [x] AssetLink prevents cycles on creation
+- [x] State machine transitions work correctly with full test coverage
 - [ ] DAG calculations return correct ancestor/descendant lists (deferred)
 
 ### Known Issues/Learnings
 - **AshPaperTrail + Multitenancy**: Version resources require special handling for multitenancy. Defer full implementation to Milestone 4 when policies are in place.
-- **State Machine Transitions**: Basic state machine structure is implemented with AshStateMachine, but transitions need further debugging and testing.
+- **AshStateMachine Transition Usage**: Transitions must be defined using `transition` blocks that specify `from: [...]` and `to: ...` states. The state machine validates that only valid transitions can occur. Actions should use `Ash.Changeset.manage_relationship` for state transitions, and the state attribute must be configured with `default :draft` (or appropriate initial state) and `allow_nil? false`.
+- **Cycle Detection Logic**: Correct cycle detection requires checking if adding an edge (parent_id, child_id) would create a cycle by performing a DFS from the proposed child back to the proposed parent. The check is: `path_exists?(child_id, parent_id)`. This must be done as an Ash change (not validation) to access query capabilities. The cycle check only prevents creating cycles; it does not prevent deleting links that would break existing cycles.
+- **Ash Changes vs Validations**: Use Ash changes (not validations) when you need to perform queries that depend on the data layer. Changes run after validations and have access to the full query capabilities. Cycle detection must be implemented as a change because it requires traversing the graph to check for existing paths.
 - **Snapshot Mode**: Used `snapshot` mode instead of `full_diff` for AshPaperTrail to ensure atomic operations. This may be revisited if full diff capabilities are needed.
 - **DAG Calculations**: Placeholder calculations exist for ancestors/descendants/paths. Full recursive implementation deferred to future milestone.
 

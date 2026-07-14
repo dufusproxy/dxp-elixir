@@ -127,5 +127,233 @@ defmodule Core.Assets.AssetTest do
       # Verify the state attribute exists and has the initial value
       assert asset.state == :draft
     end
+
+    test "transitions from draft to review via submit_for_review" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      reviewed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :submit_for_review)
+        )
+
+      assert reviewed_asset.state == :review
+    end
+
+    test "transitions from review to live via approve" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      reviewed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :submit_for_review)
+        )
+
+      live_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(reviewed_asset, :approve)
+        )
+
+      assert live_asset.state == :live
+    end
+
+    test "transitions from review to draft via reject" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      reviewed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :submit_for_review)
+        )
+
+      draft_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(reviewed_asset, :reject)
+        )
+
+      assert draft_asset.state == :draft
+    end
+
+    test "transitions from live to safe_edit via start_safe_edit" do
+      asset = create_live_asset()
+
+      safe_edit_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :start_safe_edit)
+        )
+
+      assert safe_edit_asset.state == :safe_edit
+    end
+
+    test "transitions from safe_edit to live via commit_safe_edit" do
+      asset = create_live_asset()
+
+      safe_edit_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :start_safe_edit)
+        )
+
+      live_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit)
+        )
+
+      assert live_asset.state == :live
+    end
+
+    test "transitions from safe_edit to live via discard_safe_edit" do
+      asset = create_live_asset()
+
+      safe_edit_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :start_safe_edit)
+        )
+
+      live_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(safe_edit_asset, :discard_safe_edit)
+        )
+
+      assert live_asset.state == :live
+    end
+
+    test "transitions from draft to archived via archive" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      archived_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :archive)
+        )
+
+      assert archived_asset.state == :archived
+    end
+
+    test "transitions from live to archived via archive" do
+      asset = create_live_asset()
+
+      archived_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :archive)
+        )
+
+      assert archived_asset.state == :archived
+    end
+
+    test "creates paper trail versions on state transitions" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      reviewed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :submit_for_review)
+        )
+
+      live_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(reviewed_asset, :approve)
+        )
+
+      versions =
+        Ash.read!(Core.Assets.Asset.Version)
+        |> Enum.filter(fn v -> v.version_source_id == live_asset.id end)
+
+      assert length(versions) == 3
+
+      action_names = Enum.map(versions, fn v -> v.version_action_name end)
+      assert :create in action_names
+      assert :submit_for_review in action_names
+      assert :approve in action_names
+    end
+
+    test "complete review workflow: draft -> review -> live" do
+      asset =
+        Ash.create!(
+          Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+            type: :page,
+            role: :page
+          })
+        )
+
+      assert asset.state == :draft
+
+      reviewed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :submit_for_review)
+        )
+
+      assert reviewed_asset.state == :review
+
+      live_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(reviewed_asset, :approve)
+        )
+
+      assert live_asset.state == :live
+    end
+
+    test "complete safe edit workflow: live -> safe_edit -> live" do
+      asset = create_live_asset()
+      assert asset.state == :live
+
+      safe_edit_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(asset, :start_safe_edit)
+        )
+
+      assert safe_edit_asset.state == :safe_edit
+
+      committed_asset =
+        Ash.update!(
+          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit)
+        )
+
+      assert committed_asset.state == :live
+    end
+  end
+
+  # Helper function to create a live asset
+  defp create_live_asset do
+    asset =
+      Ash.create!(
+        Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
+          type: :page,
+          role: :page
+        })
+      )
+
+    reviewed_asset =
+      Ash.update!(
+        Ash.Changeset.for_update(asset, :submit_for_review)
+      )
+
+    Ash.update!(
+      Ash.Changeset.for_update(reviewed_asset, :approve)
+    )
   end
 end

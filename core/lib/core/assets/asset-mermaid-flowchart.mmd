@@ -1,0 +1,9 @@
+stateDiagram-v2
+draft --> review: submit_for_review
+review --> draft: reject
+review --> live: approve
+live --> archived: archive
+live --> safe_edit: start_safe_edit
+safe_edit --> live: commit_safe_edit
+safe_edit --> live: discard_safe_edit
+draft --> archived: archive

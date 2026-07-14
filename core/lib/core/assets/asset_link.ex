@@ -73,6 +73,9 @@ defmodule Core.Assets.AssetLink do
     create :create do
       primary?(true)
       accept([:parent_id, :child_id, :link_type])
+
+      # Prevent cycles in the DAG
+      change fn changeset, _context -> Core.Assets.AssetLink.Policies.prevent_cycles(changeset) end
     end
 
     update :update do

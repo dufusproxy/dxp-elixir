@@ -146,30 +146,37 @@ defmodule Core.Assets.Asset do
     # State machine transitions
     update :submit_for_review do
       accept([])
+      change transition_state(:review)
     end
 
     update :approve do
       accept([])
+      change transition_state(:live)
     end
 
     update :reject do
       accept([])
+      change transition_state(:draft)
     end
 
     update :start_safe_edit do
       accept([])
+      change transition_state(:safe_edit)
     end
 
     update :commit_safe_edit do
       accept([])
+      change transition_state(:live)
     end
 
     update :discard_safe_edit do
       accept([])
+      change transition_state(:live)
     end
 
     update :archive do
       accept([])
+      change transition_state(:archived)
     end
   end
 
@@ -178,5 +185,14 @@ defmodule Core.Assets.Asset do
     define(:read, action: :read)
     define(:update, action: :update)
     define(:destroy, action: :destroy)
+
+    # State machine transitions
+    define(:submit_for_review, action: :submit_for_review)
+    define(:approve, action: :approve)
+    define(:reject, action: :reject)
+    define(:start_safe_edit, action: :start_safe_edit)
+    define(:commit_safe_edit, action: :commit_safe_edit)
+    define(:discard_safe_edit, action: :discard_safe_edit)
+    define(:archive, action: :archive)
   end
 end
