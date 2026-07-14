@@ -8,12 +8,32 @@ defmodule Core.Metadata.MetadataValue do
     data_layer: AshPostgres.DataLayer,
     extensions: [
       AshPaperTrail.Resource,
-      AshArchival.Resource
+      AshArchival.Resource,
+      AshJsonApi.Resource
     ]
 
   postgres do
     table("metadata_values")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("metadata_value")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :asset_id,
+      :schema_id,
+      :values,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   paper_trail do

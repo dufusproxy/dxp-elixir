@@ -9,7 +9,8 @@ defmodule Core.Assets.Asset do
     extensions: [
       AshPaperTrail.Resource,
       AshArchival.Resource,
-      AshStateMachine
+      AshStateMachine,
+      AshJsonApi.Resource
     ],
     authorizers: [
       Ash.Policy.Authorizer
@@ -18,6 +19,25 @@ defmodule Core.Assets.Asset do
   postgres do
     table("assets")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("asset")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :type,
+      :role,
+      :state,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   paper_trail do

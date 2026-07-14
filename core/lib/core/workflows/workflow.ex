@@ -8,12 +8,33 @@ defmodule Core.Workflows.Workflow do
     data_layer: AshPostgres.DataLayer,
     extensions: [
       AshPaperTrail.Resource,
-      AshArchival.Resource
+      AshArchival.Resource,
+      AshJsonApi.Resource
     ]
 
   postgres do
     table("workflows")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("workflow")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :name,
+      :slug,
+      :asset_types,
+      :definition,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   paper_trail do

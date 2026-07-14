@@ -35,8 +35,31 @@ defmodule Core.Content.Page do
       AshPaperTrail.Resource,
       AshArchival.Resource,
       AshStateMachine,
-      Core.Implications
+      Core.Implications,
+      AshJsonApi.Resource
     ]
+
+  json_api do
+    type("page")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :type,
+      :role,
+      :state,
+      :slug,
+      :title,
+      :content,
+      :inserted_at,
+      :updated_at
+    ])
+  end
 
   attributes do
     uuid_primary_key(:id)

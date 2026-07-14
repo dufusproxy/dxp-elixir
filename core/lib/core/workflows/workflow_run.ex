@@ -8,12 +8,36 @@ defmodule Core.Workflows.WorkflowRun do
     data_layer: AshPostgres.DataLayer,
     extensions: [
       AshPaperTrail.Resource,
-      AshArchival.Resource
+      AshArchival.Resource,
+      AshJsonApi.Resource
     ]
 
   postgres do
     table("workflow_runs")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("workflow_run")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :asset_id,
+      :workflow_id,
+      :current_state,
+      :initiated_by,
+      :status,
+      :context,
+      :inserted_at,
+      :updated_at,
+      :completed_at
+    ])
   end
 
   paper_trail do

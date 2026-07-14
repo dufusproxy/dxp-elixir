@@ -5,11 +5,32 @@ defmodule Core.Resources.Tenant do
   """
   use Ash.Resource,
     domain: Core.Domain,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [
+      AshJsonApi.Resource
+    ]
 
   postgres do
     table("tenants")
     repo(Core.Repo)
+  end
+
+  json_api do
+    type("tenant")
+    routes([
+      :index,
+      :show,
+      :create,
+      :update,
+      :destroy
+    ])
+
+    default_fields([
+      :name,
+      :slug,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   attributes do

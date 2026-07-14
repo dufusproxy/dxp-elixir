@@ -20,4 +20,13 @@ config :core, Oban,
   crontab: false,
   prefix: "public"
 
+# AshJsonApi configuration
+config :ash, :esoteric_providers, [
+  AshJsonApi.Resource
+]
+
+config :ash_json_api, :authors, [
+  "DXP Team"
+]
+
 import_config "#{config_env()}.exs"
