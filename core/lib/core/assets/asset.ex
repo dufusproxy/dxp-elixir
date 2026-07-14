@@ -10,6 +10,9 @@ defmodule Core.Assets.Asset do
       AshPaperTrail.Resource,
       AshArchival.Resource,
       AshStateMachine
+    ],
+    authorizers: [
+      Ash.Policy.Authorizer
     ]
 
   postgres do
@@ -194,5 +197,60 @@ defmodule Core.Assets.Asset do
     define(:commit_safe_edit, action: :commit_safe_edit)
     define(:discard_safe_edit, action: :discard_safe_edit)
     define(:archive, action: :archive)
+  end
+
+  policies do
+    # If no actor is present, deny all access
+    policy always() do
+      authorize_if actor_present()
+    end
+
+    # Read actions require :read permission
+    policy action_type(:read) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :read}
+    end
+
+    # Create and update actions require :write permission
+    policy action_type(:create) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action_type(:update) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    # State transition actions require :write permission
+    policy action(:submit_for_review) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:approve) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:reject) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:start_safe_edit) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:commit_safe_edit) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:discard_safe_edit) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    policy action(:archive) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :write}
+    end
+
+    # Destroy action requires :admin permission
+    policy action_type(:destroy) do
+      authorize_if {Core.Policies.HasAssetPermission, level: :admin}
+    end
   end
 end

@@ -76,23 +76,32 @@ defmodule Core.Assets.AssetLink do
 
       # Prevent cycles in the DAG
       change fn changeset, _context -> Core.Assets.AssetLink.Policies.prevent_cycles(changeset) end
+
+      # Invalidate permission cache on create
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
 
     update :update do
       primary?(true)
       accept([:link_type])
 
-      # Allow paper_trail to work atomically
+      # Allow non-atomic updates for cache invalidation
       require_atomic?(false)
+
+      # Invalidate permission cache on update
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
 
     destroy :destroy do
       primary?(true)
 
-      # Allow paper_trail to work atomically
+      soft?(true)
+
+      # Allow non-atomic destroys for cache invalidation
       require_atomic?(false)
 
-      soft?(true)
+      # Invalidate permission cache on destroy
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
   end
 

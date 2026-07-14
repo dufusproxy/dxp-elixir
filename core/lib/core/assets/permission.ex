@@ -73,16 +73,31 @@ defmodule Core.Assets.Permission do
     create :create do
       primary?(true)
       accept([:asset_id, :principal_id, :principal_type, :level])
+
+      # Invalidate permission cache on create
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
 
     update :update do
       primary?(true)
       accept([:level])
+
+      # Allow non-atomic updates for cache invalidation
+      require_atomic?(false)
+
+      # Invalidate permission cache on update
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
 
     destroy :destroy do
       primary?(true)
       soft?(true)
+
+      # Allow non-atomic destroys for cache invalidation
+      require_atomic?(false)
+
+      # Invalidate permission cache on destroy
+      change Core.Policies.Changes.InvalidatePermissionCache.invalidate_permission_cache()
     end
   end
 

@@ -29,6 +29,10 @@ defmodule Core.MixProject do
       {:ash_state_machine, "~> 0.2"},
       {:ash_oban, "~> 0.8"},
       {:oban, "~> 2.19"},
+      {:phoenix, "~> 1.7"},
+      {:phoenix_pubsub, "~> 2.1"},
+      {:stream_data, "~> 1.0"},
+      {:picosat_elixir, "~> 0.2"},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}

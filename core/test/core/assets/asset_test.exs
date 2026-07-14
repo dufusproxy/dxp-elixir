@@ -3,6 +3,10 @@ defmodule Core.Assets.AssetTest do
 
   @moduletag :asset
 
+  # For resource functionality tests, bypass authorization
+  # Authorization tests are in a separate test file
+  @bypass_auth [authorize?: false]
+
   describe "Asset resource" do
     test "creates an asset with required attributes" do
       asset =
@@ -10,7 +14,8 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       assert asset.type == :page
@@ -24,12 +29,14 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       updated_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :update, %{role: :layout})
+          Ash.Changeset.for_update(asset, :update, %{role: :layout}),
+          @bypass_auth
         )
 
       assert updated_asset.role == :layout
@@ -41,14 +48,15 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       # Archive the asset using destroy action (AshArchival uses destroy for soft delete)
-      Ash.destroy!(asset)
+      Ash.destroy!(asset, @bypass_auth)
 
       # Asset should not appear in normal queries (soft deleted)
-      assets = Ash.read!(Core.Assets.Asset)
+      assets = Ash.read!(Core.Assets.Asset, @bypass_auth)
 
       # Filter to ensure our specific asset is not present
       assert Enum.all?(assets, fn a -> a.id != asset.id end)
@@ -60,12 +68,13 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       # Version should be created
       versions =
-        Ash.read!(Core.Assets.Asset.Version)
+        Ash.read!(Core.Assets.Asset.Version, @bypass_auth)
         |> Enum.filter(fn v -> v.version_source_id == asset.id end)
 
       assert length(versions) == 1
@@ -79,14 +88,15 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
-      Ash.update!(Ash.Changeset.for_update(asset, :update, %{role: :layout}))
+      Ash.update!(Ash.Changeset.for_update(asset, :update, %{role: :layout}), @bypass_auth)
 
       # Two versions should exist (create and update)
       versions =
-        Ash.read!(Core.Assets.Asset.Version)
+        Ash.read!(Core.Assets.Asset.Version, @bypass_auth)
         |> Enum.filter(fn v -> v.version_source_id == asset.id end)
 
       assert length(versions) == 2
@@ -98,14 +108,15 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
-      Ash.destroy!(Ash.Changeset.for_destroy(asset, :destroy))
+      Ash.destroy!(Ash.Changeset.for_destroy(asset, :destroy), @bypass_auth)
 
       # Version should be created for destroy
       versions =
-        Ash.read!(Core.Assets.Asset.Version)
+        Ash.read!(Core.Assets.Asset.Version, @bypass_auth)
         |> Enum.filter(fn v -> v.version_source_id == asset.id end)
 
       assert length(versions) == 2  # create and destroy
@@ -121,7 +132,8 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       # Verify the state attribute exists and has the initial value
@@ -134,12 +146,14 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       reviewed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :submit_for_review)
+          Ash.Changeset.for_update(asset, :submit_for_review),
+          @bypass_auth
         )
 
       assert reviewed_asset.state == :review
@@ -151,17 +165,20 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       reviewed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :submit_for_review)
+          Ash.Changeset.for_update(asset, :submit_for_review),
+          @bypass_auth
         )
 
       live_asset =
         Ash.update!(
-          Ash.Changeset.for_update(reviewed_asset, :approve)
+          Ash.Changeset.for_update(reviewed_asset, :approve),
+          @bypass_auth
         )
 
       assert live_asset.state == :live
@@ -173,17 +190,20 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       reviewed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :submit_for_review)
+          Ash.Changeset.for_update(asset, :submit_for_review),
+          @bypass_auth
         )
 
       draft_asset =
         Ash.update!(
-          Ash.Changeset.for_update(reviewed_asset, :reject)
+          Ash.Changeset.for_update(reviewed_asset, :reject),
+          @bypass_auth
         )
 
       assert draft_asset.state == :draft
@@ -194,7 +214,8 @@ defmodule Core.Assets.AssetTest do
 
       safe_edit_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :start_safe_edit)
+          Ash.Changeset.for_update(asset, :start_safe_edit),
+          @bypass_auth
         )
 
       assert safe_edit_asset.state == :safe_edit
@@ -205,12 +226,14 @@ defmodule Core.Assets.AssetTest do
 
       safe_edit_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :start_safe_edit)
+          Ash.Changeset.for_update(asset, :start_safe_edit),
+          @bypass_auth
         )
 
       live_asset =
         Ash.update!(
-          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit)
+          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit),
+          @bypass_auth
         )
 
       assert live_asset.state == :live
@@ -221,12 +244,14 @@ defmodule Core.Assets.AssetTest do
 
       safe_edit_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :start_safe_edit)
+          Ash.Changeset.for_update(asset, :start_safe_edit),
+          @bypass_auth
         )
 
       live_asset =
         Ash.update!(
-          Ash.Changeset.for_update(safe_edit_asset, :discard_safe_edit)
+          Ash.Changeset.for_update(safe_edit_asset, :discard_safe_edit),
+          @bypass_auth
         )
 
       assert live_asset.state == :live
@@ -238,12 +263,14 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       archived_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :archive)
+          Ash.Changeset.for_update(asset, :archive),
+          @bypass_auth
         )
 
       assert archived_asset.state == :archived
@@ -254,7 +281,8 @@ defmodule Core.Assets.AssetTest do
 
       archived_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :archive)
+          Ash.Changeset.for_update(asset, :archive),
+          @bypass_auth
         )
 
       assert archived_asset.state == :archived
@@ -266,21 +294,24 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       reviewed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :submit_for_review)
+          Ash.Changeset.for_update(asset, :submit_for_review),
+          @bypass_auth
         )
 
       live_asset =
         Ash.update!(
-          Ash.Changeset.for_update(reviewed_asset, :approve)
+          Ash.Changeset.for_update(reviewed_asset, :approve),
+          @bypass_auth
         )
 
       versions =
-        Ash.read!(Core.Assets.Asset.Version)
+        Ash.read!(Core.Assets.Asset.Version, @bypass_auth)
         |> Enum.filter(fn v -> v.version_source_id == live_asset.id end)
 
       assert length(versions) == 3
@@ -297,21 +328,24 @@ defmodule Core.Assets.AssetTest do
           Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
             type: :page,
             role: :page
-          })
+          }),
+          @bypass_auth
         )
 
       assert asset.state == :draft
 
       reviewed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :submit_for_review)
+          Ash.Changeset.for_update(asset, :submit_for_review),
+          @bypass_auth
         )
 
       assert reviewed_asset.state == :review
 
       live_asset =
         Ash.update!(
-          Ash.Changeset.for_update(reviewed_asset, :approve)
+          Ash.Changeset.for_update(reviewed_asset, :approve),
+          @bypass_auth
         )
 
       assert live_asset.state == :live
@@ -323,14 +357,16 @@ defmodule Core.Assets.AssetTest do
 
       safe_edit_asset =
         Ash.update!(
-          Ash.Changeset.for_update(asset, :start_safe_edit)
+          Ash.Changeset.for_update(asset, :start_safe_edit),
+          @bypass_auth
         )
 
       assert safe_edit_asset.state == :safe_edit
 
       committed_asset =
         Ash.update!(
-          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit)
+          Ash.Changeset.for_update(safe_edit_asset, :commit_safe_edit),
+          @bypass_auth
         )
 
       assert committed_asset.state == :live
@@ -344,16 +380,19 @@ defmodule Core.Assets.AssetTest do
         Ash.Changeset.for_create(Core.Assets.Asset, :create, %{
           type: :page,
           role: :page
-        })
+        }),
+        @bypass_auth
       )
 
     reviewed_asset =
       Ash.update!(
-        Ash.Changeset.for_update(asset, :submit_for_review)
+        Ash.Changeset.for_update(asset, :submit_for_review),
+        @bypass_auth
       )
 
     Ash.update!(
-      Ash.Changeset.for_update(reviewed_asset, :approve)
+      Ash.Changeset.for_update(reviewed_asset, :approve),
+      @bypass_auth
     )
   end
 end

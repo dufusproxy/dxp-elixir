@@ -38,7 +38,58 @@ defmodule Core.DataCase do
     # Start the repo
     Core.Repo.start_link()
 
+    # Start pubsub and cache - use start_supervised! with proper restart strategy
+    # to avoid issues with multiple test cases
+    case Process.whereis(Core.PubSub) do
+      nil ->
+        start_supervised!({Phoenix.PubSub, [name: Core.PubSub]})
+      _pid ->
+        :ok
+    end
+
+    case Process.whereis(Core.Policies.PermissionCache) do
+      nil ->
+        start_supervised!(Core.Policies.PermissionCache)
+      _pid ->
+        :ok
+    end
+
     :ok
+  end
+
+  @doc """
+  Creates a test actor with admin permissions.
+  """
+  def test_admin(actor_id \\ nil) do
+    actor_id = actor_id || Ecto.UUID.generate()
+
+    %{
+      id: actor_id,
+      role: :admin
+    }
+  end
+
+  @doc """
+  Creates a test actor and grants admin permission on an asset.
+  """
+  def grant_admin_permission(asset_id, actor_id \\ nil) do
+    actor = test_admin(actor_id)
+
+    Ash.create!(
+      Ash.Changeset.for_create(
+        Core.Assets.Permission,
+        :create,
+        %{
+          asset_id: asset_id,
+          principal_id: actor.id,
+          principal_type: :user,
+          level: :admin
+        },
+        authorize?: false
+      )
+    )
+
+    actor
   end
 end
 
