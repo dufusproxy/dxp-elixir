@@ -39,6 +39,8 @@ defmodule Core.MixProject do
       {:jason, "~> 1.4"},
       {:stream_data, "~> 1.0"},
       {:picosat_elixir, "~> 0.2"},
+      {:yamerl, "~> 0.10"},
+      {:ex_json_schema, "~> 0.10"},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}

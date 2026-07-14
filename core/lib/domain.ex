@@ -22,6 +22,11 @@ defmodule Core.Domain do
     # Content resources
     resource(Core.Content.Page)
 
+    # Component resources
+    resource(Core.Components.Component)
+    resource(Core.Components.ComponentVersion)
+    resource(Core.Components.ComponentSubscription)
+
     # Metadata resources
     resource(Core.Metadata.MetadataSchema)
     resource(Core.Metadata.MetadataValue)

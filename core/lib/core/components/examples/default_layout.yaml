@@ -1,0 +1,78 @@
+# Default Layout Component
+# A basic layout component for pages
+
+name: default-layout
+version: 1.0.0
+roles:
+  - layout
+
+# Layouts don't typically expect other layouts
+# but this could be configured for nested layouts
+
+# Props for the layout
+props:
+  type: object
+  properties:
+    title:
+      type: string
+      description: "Page title for the <title> tag"
+    className:
+      type: string
+      description: "Additional CSS classes for the layout wrapper"
+    showHeader:
+      type: boolean
+      default: true
+      description: "Whether to show the site header"
+    showFooter:
+      type: boolean
+      default: true
+      description: "Whether to show the site footer"
+  required:
+    - title
+
+# Slots for child content
+slots:
+  header:
+    accept:
+      - component
+    required: false
+    description: "Override the default header"
+  main:
+    accept:
+      - page
+      - component
+    required: true
+    description: "Main page content area"
+  footer:
+    accept:
+      - component
+    required: false
+    description: "Override the default footer"
+
+# Events emitted by this layout
+events:
+  onPageLoad:
+    type: object
+    properties:
+      timestamp:
+        type: integer
+      pageUrl:
+        type: string
+
+# Supported runtime modes
+modes:
+  - static
+
+# Accessibility commitments
+a11y:
+  role: layout
+  keyboard:
+    - tab
+    - shift_tab
+  aria:
+    - landmark
+
+# Artefact paths
+artefacts:
+  render_server: default-layout.heex
+  styles: default-layout.css

@@ -1,0 +1,75 @@
+# Button Component
+# A reusable button component
+
+name: button
+version: 1.0.0
+roles:
+  - component
+
+# Props for the button
+props:
+  type: object
+  properties:
+    label:
+      type: string
+      description: "Button text"
+    variant:
+      type: string
+      enum: [primary, secondary, outline, ghost]
+      default: primary
+      description: "Button visual variant"
+    size:
+      type: string
+      enum: [small, medium, large]
+      default: medium
+      description: "Button size"
+    disabled:
+      type: boolean
+      default: false
+      description: "Whether the button is disabled"
+    type:
+      type: string
+      enum: [button, submit, reset]
+      default: button
+      description: "HTML button type"
+    href:
+      type: string
+      description: "If provided, renders as an anchor tag"
+    iconName:
+      type: string
+      description: "Name of icon to display (if icons are enabled)"
+    iconPosition:
+      type: string
+      enum: [left, right]
+      default: left
+      description: "Position of icon relative to label"
+  required:
+    - label
+
+# Events emitted by this button
+events:
+  onClick:
+    type: object
+    properties:
+      buttonId:
+        type: string
+      variant:
+        type: string
+
+# Supported runtime modes
+modes:
+  - static
+
+# Accessibility commitments
+a11y:
+  role: button
+  keyboard:
+    - enter
+    - space
+  aria:
+    - button
+
+# Artefact paths
+artefacts:
+  render_server: button.heex
+  styles: button.css

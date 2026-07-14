@@ -1,0 +1,107 @@
+# Article Page Component
+# A standard article/blog page component
+
+name: article-page
+version: 1.0.0
+roles:
+  - page
+
+# Layout specification
+expects_layout:
+  matches_role: layout
+  default: default-layout
+
+# Props for the article page
+props:
+  type: object
+  properties:
+    title:
+      type: string
+      description: "Article title"
+    author:
+      type: string
+      description: "Article author name"
+    publishDate:
+      type: string
+      format: date
+      description: "Publication date (ISO 8601)"
+    content:
+      type: string
+      description: "Article content (HTML or markdown)"
+    featuredImage:
+      type: string
+      description: "URL to featured image"
+    category:
+      type: string
+      description: "Article category"
+    tags:
+      type: array
+      items:
+        type: string
+      description: "Article tags"
+    showAuthor:
+      type: boolean
+      default: true
+      description: "Whether to display author info"
+    showDate:
+      type: boolean
+      default: true
+      description: "Whether to display publication date"
+  required:
+    - title
+    - content
+
+# Slots for additional content
+slots:
+  hero:
+    accept:
+      - component
+    required: false
+    description: "Hero section above article content"
+  sidebar:
+    accept:
+      - component
+    required: false
+    description: "Sidebar content (author bio, related articles, etc.)"
+  belowContent:
+    accept:
+      - component
+    required: false
+    description: "Content section below the article (comments, related, etc.)"
+
+# Events emitted by this page
+events:
+  onArticleLoad:
+    type: object
+    properties:
+      articleId:
+        type: string
+      category:
+        type: string
+  onShare:
+    type: object
+    properties:
+      platform:
+        type: string
+        enum: [twitter, facebook, linkedin, email]
+      url:
+        type: string
+
+# Supported runtime modes
+modes:
+  - static
+
+# Accessibility commitments
+a11y:
+  role: article
+  keyboard:
+    - tab
+    - shift_tab
+  aria:
+    - article
+    - landmark
+
+# Artefact paths
+artefacts:
+  render_server: article-page.heex
+  styles: article-page.css

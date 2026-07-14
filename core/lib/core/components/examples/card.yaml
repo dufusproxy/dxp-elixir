@@ -1,0 +1,86 @@
+# Card Component
+# A content card component for grouping related content
+
+name: card
+version: 1.0.0
+roles:
+  - component
+
+# Props for the card
+props:
+  type: object
+  properties:
+    title:
+      type: string
+      description: "Card title"
+    description:
+      type: string
+      description: "Card description text"
+    variant:
+      type: string
+      enum: [default, elevated, outlined, flat]
+      default: default
+      description: "Card visual variant"
+    imageUrl:
+      type: string
+      description: "URL to card image"
+    imageAlt:
+      type: string
+      description: "Alt text for card image"
+    linkUrl:
+      type: string
+      description: "If provided, makes the card clickable"
+    badge:
+      type: string
+      description: "Badge text to display"
+    badgeVariant:
+      type: string
+      enum: [info, success, warning, error]
+      default: info
+      description: "Badge visual variant"
+  required: []
+
+# Slots for card content
+slots:
+  header:
+    accept:
+      - component
+    required: false
+    description: "Custom header content"
+  content:
+    accept:
+      - component
+    required: false
+    description: "Main card content area"
+  footer:
+    accept:
+      - component
+    required: false
+    description: "Card footer actions"
+
+# Events emitted by this card
+events:
+  onCardClick:
+    type: object
+    properties:
+      cardId:
+        type: string
+      hasImage:
+        type: boolean
+
+# Supported runtime modes
+modes:
+  - static
+
+# Accessibility commitments
+a11y:
+  role: article
+  keyboard:
+    - enter
+  aria:
+    - article
+
+# Artefact paths
+artefacts:
+  render_server: card.heex
+  styles: card.css
